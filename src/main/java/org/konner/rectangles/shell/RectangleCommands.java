@@ -1,6 +1,6 @@
 package org.konner.rectangles.shell;
 
-import org.konner.rectangles.analyzer.RectangleAnalyzer;
+import org.konner.rectangles.service.RectangleAnalysisService;
 import org.konner.rectangles.demo.DemoScenarios;
 import org.konner.rectangles.formatter.RectangleAnalysisFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class RectangleCommands {
 
     @Autowired
-    private RectangleAnalyzer analyzer;
+    private RectangleAnalysisService analyzer;
 
     @Autowired
     private RectangleAnalysisFormatter formatter;
@@ -20,14 +20,15 @@ public class RectangleCommands {
     @Autowired
     private DemoScenarios scenarios;
 
+    //todo add new option to choose analysis type. Default to intersection, containment, and adjacency. User can specify a combination of intersection, containment, and adjacency.
     @Command(
             name = "analyze",
             description = "Analyze two rectangles for intersection, containment, and adjacency.",
             help = """
                    Analyzes two axis-aligned rectangles and reports:
-                     • any points where their boundaries meet,
-                     • whether one rectangle wholly contains the other,
-                     • whether they share a side (proper / sub-line / partial).
+                     • Intersection. any points where their boundaries meet,
+                     • Containment: whether one rectangle wholly contains the other
+                     • Adjacency: whether they share a side (proper / sub-line / partial)
 
                    Each rectangle is specified by its bottom-left and top-right corner,
                    so --rectangles takes eight comma-separated numbers in this order:

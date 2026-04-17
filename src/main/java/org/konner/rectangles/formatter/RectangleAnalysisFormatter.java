@@ -1,5 +1,5 @@
 package org.konner.rectangles.formatter;
 
 public interface RectangleAnalysisFormatter {
-    //todo
+    String format(Ana)
 }
