@@ -7,7 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class RectanglesApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RectanglesApplication.class, args);
+        String[] effectiveArgs = args.length == 0 ? new String[]{"demo"} : args;
+        SpringApplication.run(RectanglesApplication.class, effectiveArgs);
     }
 
 }

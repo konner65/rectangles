@@ -5,19 +5,7 @@ import java.util.List;
 public record RectangleAnalysisResult(
         Rectangle rectangleA,
         Rectangle rectangleB,
-        List<Point> intersectionPoints,
+        Intersection intersection,
         Containment containment,
         Adjacency adjacency
-) {
-    public boolean intersects() {
-        return !intersectionPoints.isEmpty();
-    }
-
-    public boolean isAdjacent() {
-        return adjacency != Adjacency.NONE;
-    }
-
-    public boolean isContained() {
-        return containment != Containment.NONE;
-    }
-}
+) {}
