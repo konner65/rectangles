@@ -50,7 +50,7 @@ public class RectangleCommands {
                             + "(bottom-left and top-right of each of the two rectangles)."
             ) String rectangles
     ) {
-        //todo
+        //todo implement
         return "";
     }
 
@@ -89,7 +89,7 @@ public class RectangleCommands {
                     description = "List available scenario names and exit without running them."
             ) boolean list
     ) {
-        //todo
+        //todo implement
         return "";
     }
 
