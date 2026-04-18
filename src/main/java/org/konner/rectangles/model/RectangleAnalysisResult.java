@@ -3,9 +3,9 @@ package org.konner.rectangles.model;
 import java.util.List;
 
 public record RectangleAnalysisResult(
-        Rectangle rectangleA,
-        Rectangle rectangleB,
-        Intersection intersection,
+        Rectangle r1,
+        Rectangle r2,
+        List<Point> intersection,
         Containment containment,
         Adjacency adjacency
 ) {}
