@@ -5,22 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-/**
- * Renders two axis-aligned rectangles onto a simple character grid by drawing
- * only the perimeters (rectangle outlines).
- *
- * <p>Each cell is drawn as:
- * <pre>
- *   a — the cell sits on rectangle A's boundary only
- *   b — the cell sits on rectangle B's boundary only
- *   # — the cell sits on both rectangles' boundaries
- *   . — the cell is empty
- * </pre>
- *
- * <p>When a rectangle is so small relative to the overall bounding box that
- * it would render to fewer than two cells along either axis, it collapses to
- * a single letter at its centre.
- */
 @Component
 public class RectangleDrawerImpl implements RectangleDrawer {
 

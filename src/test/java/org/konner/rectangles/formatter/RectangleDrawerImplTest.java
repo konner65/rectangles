@@ -126,13 +126,11 @@ class RectangleDrawerImplTest {
 
     // ---------- helpers ----------
 
-    /** Returns just the grid rows — everything above the legend. */
     private static String[] gridRows(String out) {
         int legendIdx = out.lastIndexOf('\n');
         return out.substring(0, legendIdx).split("\n");
     }
 
-    /** Returns the grid portion of the drawer output, without the legend line. */
     private static String onlyGrid(String out) {
         int legendIdx = out.lastIndexOf('\n');
         return out.substring(0, legendIdx);

@@ -15,11 +15,13 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Replaces Spring Shell's built-in {@link Help} so the {@code Rectangle
  * Analysis Commands} group is listed before {@code Built-In Commands} in the
- * available-commands list.
+ * available-commands list, and so the built-ins that don't apply in one-shot
+ * mode are hidden.
  *
  * <p>Spring Shell's default renderer sorts groups purely by name, which would
  * put {@code Built-In Commands} first. This subclass keeps the superclass's
@@ -27,10 +29,12 @@ import java.util.Set;
  * a nice NAME / SYNOPSIS / OPTIONS block) and only overrides the list-mode
  * output to sort with a preferred group order.
  *
- * <p>In one-shot mode the Spring Shell built-ins ({@code clear}, {@code quit},
- * {@code script}, {@code version}) don't apply — users run a single command
- * and the process exits — so the {@code Built-In Commands} group is hidden
- * from the list when {@code spring.shell.interactive.enabled} is {@code false}.
+ * <p>In one-shot mode most of the Spring Shell built-ins ({@code clear},
+ * {@code quit}/{@code exit}, {@code script}) don't apply — users run a
+ * single command and the process exits — so those entries are filtered out
+ * when {@code spring.shell.interactive.enabled} is {@code false}. Only
+ * {@code help} and {@code version} remain visible under the
+ * {@code Built-In Commands} group.
  *
  * <p>The built-in bean is disabled via
  * {@code spring.shell.command.help.enabled=false}; this bean takes its place.
@@ -45,6 +49,12 @@ public class RectangleHelpCommand extends Help {
             RECTANGLE_GROUP,
             BUILT_IN_GROUP
     );
+
+    // The subset of Spring Shell built-ins that still make sense when the
+    // process will exit immediately after running a single command. Names
+    // match Command.getName() values registered by
+    // StandardCommandsAutoConfiguration (Help and Version).
+    private static final Set<String> ONE_SHOT_ALLOWED_BUILT_INS = Set.of("help", "version");
 
     private final boolean interactiveEnabled;
 
@@ -86,6 +96,8 @@ public class RectangleHelpCommand extends Help {
         Set<Command> commands = new HashSet<>(registry.getCommands());
         commands.add(Utils.QUIT_COMMAND);
 
+        Predicate<Command> visible = c -> !c.isHidden() && isRelevantForCurrentMode(c);
+
         Comparator<String> groupOrder = Comparator
                 .<String>comparingInt(group -> {
                     int i = PREFERRED_GROUP_ORDER.indexOf(group);
@@ -94,8 +106,7 @@ public class RectangleHelpCommand extends Help {
                 .thenComparing(Comparator.naturalOrder());
 
         List<String> groups = commands.stream()
-                .filter(c -> !c.isHidden())
-                .filter(c -> interactiveEnabled || !BUILT_IN_GROUP.equals(c.getGroup()))
+                .filter(visible)
                 .map(Command::getGroup)
                 .distinct()
                 .sorted(groupOrder)
@@ -109,7 +120,7 @@ public class RectangleHelpCommand extends Help {
         for (String group : groups) {
             sb.append(group).append(newline);
             commands.stream()
-                    .filter(c -> !c.isHidden())
+                    .filter(visible)
                     .filter(c -> c.getGroup().equals(group))
                     .sorted(Comparator.comparing(Command::getName))
                     .forEach(c -> sb.append('\t')
@@ -120,5 +131,15 @@ public class RectangleHelpCommand extends Help {
                             .append(newline));
         }
         return sb.toString();
+    }
+
+    private boolean isRelevantForCurrentMode(Command command) {
+        if (interactiveEnabled) {
+            return true;
+        }
+        if (!BUILT_IN_GROUP.equals(command.getGroup())) {
+            return true;
+        }
+        return ONE_SHOT_ALLOWED_BUILT_INS.contains(command.getName());
     }
 }

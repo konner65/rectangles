@@ -17,15 +17,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Unit tests for {@link RectangleHelpCommand}.
- *
- * <p>The registry is built from a small handful of fake commands covering
- * both the {@code Rectangle Analysis Commands} group and the
- * {@code Built-In Commands} group so we can assert group ordering, per-group
- * command ordering, mode-dependent visibility of built-ins, and pass-through
- * to the superclass for per-command help.
- */
 class RectangleHelpCommandTest {
 
     private CommandRegistry registry;
@@ -36,6 +27,7 @@ class RectangleHelpCommandTest {
         registry.registerCommand(fakeCommand("analyze", "Rectangle Analysis Commands", "Analyze two rectangles."));
         registry.registerCommand(fakeCommand("demo", "Rectangle Analysis Commands", "Run a built-in demo scenario."));
         registry.registerCommand(fakeCommand("clear", "Built-In Commands", "Clear the terminal screen."));
+        registry.registerCommand(fakeCommand("script", "Built-In Commands", "Execute a script file."));
         registry.registerCommand(fakeCommand("version", "Built-In Commands", "Show version info."));
     }
 
@@ -71,7 +63,9 @@ class RectangleHelpCommandTest {
         void commandsAreSortedAlphabeticallyWithinEachGroup() throws Exception {
             String output = runHelp(true, List.of());
             assertThat(output.indexOf("\tanalyze:")).isLessThan(output.indexOf("\tdemo:"));
-            assertThat(output.indexOf("\tclear:")).isLessThan(output.indexOf("\tversion:"));
+            assertThat(output.indexOf("\tclear:"))
+                    .isLessThan(output.indexOf("\tscript:"))
+                    .isLessThan(output.indexOf("\tversion:"));
         }
 
         @Test
@@ -93,17 +87,25 @@ class RectangleHelpCommandTest {
     class OneShotListMode {
 
         @Test
-        void hidesTheBuiltInCommandsGroupHeading() throws Exception {
+        void stillShowsTheBuiltInCommandsGroupHeading() throws Exception {
             String output = runHelp(/* interactive = */ false, List.of());
-            assertThat(output).doesNotContain("Built-In Commands");
+            assertThat(output).contains("Built-In Commands");
         }
 
         @Test
-        void hidesEveryIndividualBuiltInCommand() throws Exception {
+        void keepsOnlyHelpAndVersionFromTheBuiltInsGroup() throws Exception {
+            String output = runHelp(false, List.of());
+            assertThat(output)
+                    .contains("\thelp:")
+                    .contains("\tversion:");
+        }
+
+        @Test
+        void hidesTheBuiltInsThatOnlyMakeSenseInAReplSession() throws Exception {
             String output = runHelp(false, List.of());
             assertThat(output)
                     .doesNotContain("\tclear:")
-                    .doesNotContain("\tversion:")
+                    .doesNotContain("\tscript:")
                     .doesNotContain("quit, exit:");
         }
 
@@ -115,6 +117,13 @@ class RectangleHelpCommandTest {
                     .contains("Rectangle Analysis Commands")
                     .contains("\tanalyze:")
                     .contains("\tdemo:");
+        }
+
+        @Test
+        void rectangleAnalysisCommandsStillAppearsBeforeBuiltInCommands() throws Exception {
+            String output = runHelp(false, List.of());
+            assertThat(output.indexOf("Rectangle Analysis Commands"))
+                    .isLessThan(output.indexOf("Built-In Commands"));
         }
     }
 
