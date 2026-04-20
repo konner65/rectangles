@@ -4,7 +4,7 @@ import org.konner.rectangles.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -21,20 +21,35 @@ public class RectangleAnalysisServiceImpl implements RectangleAnalysisService {
 
     @Override
     public List<Point> intersection(Rectangle r1, Rectangle r2) {
-        Set<Point> points = new LinkedHashSet<>();
+        int xLo = Math.max(r1.getLeft(),   r2.getLeft());
+        int xHi = Math.min(r1.getRight(),  r2.getRight());
+        int yLo = Math.max(r1.getBottom(), r2.getBottom());
+        int yHi = Math.min(r1.getTop(),    r2.getTop());
 
-        for (int[] h : horizontalSides(r1)) {
-            for (int[] v : verticalSides(r2)) {
-                addCrossing(points, h, v);
-            }
-        }
-        for (int[] h : horizontalSides(r2)) {
-            for (int[] v : verticalSides(r1)) {
-                addCrossing(points, h, v);
-            }
+        if (xLo > xHi || yLo > yHi) {
+            return Collections.emptyList();
         }
 
-        return new ArrayList<>(points);
+        int[] xs = (xLo == xHi) ? new int[]{xLo} : new int[]{xLo, xHi};
+        int[] ys = (yLo == yHi) ? new int[]{yLo} : new int[]{yLo, yHi};
+
+        List<Point> points = new ArrayList<>();
+        for (int x : xs) {
+            for (int y : ys) {
+                if (onBoundary(r1, x, y) && onBoundary(r2, x, y)) {
+                    points.add(new Point(x, y));
+                }
+            }
+        }
+        return points;
+    }
+
+    private static boolean onBoundary(Rectangle r, int x, int y) {
+        boolean xOnVerticalEdge = x == r.getLeft() || x == r.getRight();
+        boolean yOnHorizontalEdge = y == r.getBottom() || y == r.getTop();
+        boolean xInRange = x >= r.getLeft()   && x <= r.getRight();
+        boolean yInRange = y >= r.getBottom() && y <= r.getTop();
+        return (xOnVerticalEdge && yInRange) || (yOnHorizontalEdge && xInRange);
     }
 
     @Override
@@ -98,25 +113,4 @@ public class RectangleAnalysisServiceImpl implements RectangleAnalysisService {
         return Adjacency.PARTIAL;
     }
 
-    private static int[][] horizontalSides(Rectangle r) {
-        return new int[][]{
-                {r.getBottom(), r.getLeft(), r.getRight()},
-                {r.getTop(),    r.getLeft(), r.getRight()}
-        };
-    }
-
-    private static int[][] verticalSides(Rectangle r) {
-        return new int[][]{
-                {r.getLeft(),  r.getBottom(), r.getTop()},
-                {r.getRight(), r.getBottom(), r.getTop()}
-        };
-    }
-
-    private static void addCrossing(Set<Point> out, int[] horizontal, int[] vertical) {
-        int y = horizontal[0], hxStart = horizontal[1], hxEnd = horizontal[2];
-        int x = vertical[0],   vyStart = vertical[1],   vyEnd = vertical[2];
-        if (x >= hxStart && x <= hxEnd && y >= vyStart && y <= vyEnd) {
-            out.add(new Point(x, y));
-        }
-    }
 }
