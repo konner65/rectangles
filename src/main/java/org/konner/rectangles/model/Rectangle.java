@@ -15,10 +15,10 @@ public final class Rectangle {
             throw new InvalidRectangleException("Invalid Rectangle: points cannot be null");
         }
 
-        this.left   = Math.min(p1.x(), p2.x());
-        this.right  = Math.max(p1.x(), p2.x());
+        this.left = Math.min(p1.x(), p2.x());
+        this.right = Math.max(p1.x(), p2.x());
         this.bottom = Math.min(p1.y(), p2.y());
-        this.top    = Math.max(p1.y(), p2.y());
+        this.top = Math.max(p1.y(), p2.y());
 
         if (right - left <= 0) {
             throw new InvalidRectangleException(
@@ -32,9 +32,9 @@ public final class Rectangle {
         }
     }
 
-    public int getLeft()   { return left; }
-    public int getRight()  { return right; }
-    public int getTop()    { return top; }
+    public int getLeft() { return left; }
+    public int getRight() { return right; }
+    public int getTop() { return top; }
     public int getBottom() { return bottom; }
 
     public boolean contains(Rectangle r) {
