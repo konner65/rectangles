@@ -65,40 +65,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!--
-                        Prepend a launcher script to the jar so it is a "fully
-                        executable" Spring Boot jar on Mac/Linux: the OS can
-                        run it directly (./rectangles.jar) once the executable
-                        bit is set. Windows is unaffected — `java -jar
-                        rectangles.jar` keeps working there.
-                    -->
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!--
-                    Set rwxr-xr-x (755) on the produced jar after the package
-                    phase so Mac/Linux users can invoke it directly. The Ant
-                    chmod task is a silent no-op on Windows.
-                -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>chmod-executable-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <chmod file="${project.build.directory}/${project.build.finalName}.jar"
-                                       perm="755"/>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

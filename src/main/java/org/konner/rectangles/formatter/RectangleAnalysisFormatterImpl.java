@@ -53,19 +53,19 @@ public class RectangleAnalysisFormatterImpl implements RectangleAnalysisFormatte
 
     private static String formatContainment(Containment c) {
         return switch (c) {
-            case NONE          -> "Containment: none — neither rectangle wholly contains the other.";
-            case A_CONTAINS_B  -> "Containment: A contains B — rectangle A wholly contains rectangle B.";
-            case B_CONTAINS_A  -> "Containment: B contains A — rectangle B wholly contains rectangle A.";
-            case EQUAL         -> "Containment: equal — the rectangles occupy the same region.";
+            case NONE -> "Containment: none — neither rectangle wholly contains the other.";
+            case A_CONTAINS_B -> "Containment: A contains B — rectangle A wholly contains rectangle B.";
+            case B_CONTAINS_A -> "Containment: B contains A — rectangle B wholly contains rectangle A.";
+            case EQUAL -> "Containment: equal — the rectangles occupy the same region.";
         };
     }
 
     private static String formatAdjacency(Adjacency a) {
         return switch (a) {
-            case NONE     -> "Adjacency: none — the rectangles do not share a side.";
-            case PROPER   -> "Adjacency: proper — the rectangles share a complete side.";
+            case NONE -> "Adjacency: none — the rectangles do not share a side.";
+            case PROPER -> "Adjacency: proper — the rectangles share a complete side.";
             case SUB_LINE -> "Adjacency: sub-line — one side is wholly contained within a side of the other.";
-            case PARTIAL  -> "Adjacency: partial — the rectangles share part of a side.";
+            case PARTIAL -> "Adjacency: partial — the rectangles share part of a side.";
         };
     }
 }

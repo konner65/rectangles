@@ -21,10 +21,10 @@ public class RectangleAnalysisServiceImpl implements RectangleAnalysisService {
 
     @Override
     public List<Point> intersection(Rectangle r1, Rectangle r2) {
-        int xLo = Math.max(r1.getLeft(),   r2.getLeft());
-        int xHi = Math.min(r1.getRight(),  r2.getRight());
+        int xLo = Math.max(r1.getLeft(), r2.getLeft());
+        int xHi = Math.min(r1.getRight(), r2.getRight());
         int yLo = Math.max(r1.getBottom(), r2.getBottom());
-        int yHi = Math.min(r1.getTop(),    r2.getTop());
+        int yHi = Math.min(r1.getTop(), r2.getTop());
 
         if (xLo > xHi || yLo > yHi) {
             return Collections.emptyList();
@@ -47,7 +47,7 @@ public class RectangleAnalysisServiceImpl implements RectangleAnalysisService {
     private static boolean onBoundary(Rectangle r, int x, int y) {
         boolean xOnVerticalEdge = x == r.getLeft() || x == r.getRight();
         boolean yOnHorizontalEdge = y == r.getBottom() || y == r.getTop();
-        boolean xInRange = x >= r.getLeft()   && x <= r.getRight();
+        boolean xInRange = x >= r.getLeft() && x <= r.getRight();
         boolean yInRange = y >= r.getBottom() && y <= r.getTop();
         return (xOnVerticalEdge && yInRange) || (yOnHorizontalEdge && xInRange);
     }
@@ -96,8 +96,8 @@ public class RectangleAnalysisServiceImpl implements RectangleAnalysisService {
         return new RectangleAnalysisResult(
                 r1, r2,
                 selected.contains(INTERSECTION) ? intersection(r1, r2) : null,
-                selected.contains(CONTAINMENT)  ? containment(r1, r2)  : null,
-                selected.contains(ADJACENCY)    ? adjacency(r1, r2)    : null);
+                selected.contains(CONTAINMENT) ? containment(r1, r2) : null,
+                selected.contains(ADJACENCY) ? adjacency(r1, r2) : null);
     }
 
     private static Adjacency classify(int aLo, int aHi, int bLo, int bHi) {

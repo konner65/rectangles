@@ -13,11 +13,6 @@ public enum AnalysisType {
         return EnumSet.allOf(AnalysisType.class);
     }
 
-    /**
-     * Parses a comma-separated list of analysis names. Tokens are case- and
-     * whitespace-insensitive. Throws {@link IllegalArgumentException} when a
-     * token does not match any known analysis.
-     */
     public static Set<AnalysisType> parse(String csv) {
         if (csv == null || csv.isBlank()) {
             return all();

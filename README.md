@@ -24,10 +24,10 @@ The project is a Spring Boot / Spring Shell application written in Java 17+.
 ./mvnw package
 
 # 2. Run a built-in demo
-./target/rectangles.jar demo
+java -jar target/rectangles.jar demo
 
 # 3. Or analyse your own pair of rectangles
-./target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
+java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
 ```
 
 That's it. The rest of this README walks through each step in detail.
@@ -49,17 +49,9 @@ Either command produces a single self-contained jar at:
 target/rectangles.jar
 ```
 
-A few notes about the jar:
-
-- The filename has **no version suffix** — it's just `rectangles.jar`. This is
-  configured via `<finalName>` in the POM.
-- It is a **fully executable Spring Boot jar**: a launcher script header is
-  prepended to the archive so Mac/Linux users can run it directly with
-  `./target/rectangles.jar`. Windows users invoke it with `java -jar` instead
-  (see [Run](#run) below).
-- The build sets the file mode to **`755` (rwxr-xr-x)** automatically on
-  Mac/Linux via the `maven-antrun-plugin` `<chmod>` task. (The task is a silent
-  no-op on Windows.)
+The filename has **no version suffix** — it's just `rectangles.jar`. This is
+configured via `<finalName>` in the POM. See [Run](#run) below for how to
+launch it.
 
 ---
 
@@ -107,25 +99,16 @@ exercises:
 The application is a one-shot CLI: pass a command and its options as program
 arguments and it prints the result and exits.
 
-There are three equivalent ways to invoke it. **All examples below use the
-first form** — Windows users should mentally substitute the second.
+There are two equivalent ways to invoke it. **All examples in this README use
+the first form.**
 
-### 1. Run the executable jar directly (Mac / Linux)
-
-```bash
-./target/rectangles.jar <command> [options]
-```
-
-This works because the build sets the executable bit on the jar and the jar
-itself carries a launcher script header (see [Build](#build)).
-
-### 2. Use `java -jar` (cross-platform, including Windows)
+### 1. Use `java -jar` (cross-platform — Mac, Linux, Windows)
 
 ```bash
 java -jar target/rectangles.jar <command> [options]
 ```
 
-### 3. Run via Maven without building a jar
+### 2. Run via Maven without building a jar
 
 ```bash
 ./mvnw -q spring-boot:run -Dspring-boot.run.arguments="analyze --rectangles 0,0,10,10,5,5,15,15"
@@ -140,7 +123,7 @@ If you launch the jar with **no arguments** it runs `demo` by default.
 ### `analyze` — analyse a pair of rectangles
 
 ```bash
-./target/rectangles.jar analyze \
+java -jar target/rectangles.jar analyze \
     --rectangles x1,y1,x2,y2,x3,y3,x4,y4 \
     [--analysis intersection,containment,adjacency]
 ```
@@ -158,7 +141,7 @@ returns an error.
 ### `demo` — run pre-built scenarios
 
 ```bash
-./target/rectangles.jar demo [--name <scenario>] [--list]
+java -jar target/rectangles.jar demo [--name <scenario>] [--list]
 ```
 
 | Option   | Short | Description                                              |
@@ -177,8 +160,8 @@ Spring Shell provides a `help` command that lists every command and shows the
 detailed help text for a given one:
 
 ```bash
-./target/rectangles.jar help
-./target/rectangles.jar help analyze
+java -jar target/rectangles.jar help
+java -jar target/rectangles.jar help analyze
 ```
 
 ---
@@ -188,7 +171,7 @@ detailed help text for a given one:
 ### Two overlapping rectangles
 
 ```bash
-$ ./target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
+$ java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -200,7 +183,7 @@ Adjacency: none — the rectangles do not share a side.
 ### Containment
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,20,20,5,5,15,15
+$ java -jar target/rectangles.jar analyze -r 0,0,20,20,5,5,15,15
 Rectangle A: (0, 0) - (20, 20)  [width=20, height=20]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -212,7 +195,7 @@ Adjacency: none — the rectangles do not share a side.
 ### Proper adjacency (full shared side)
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,10,10,10,0,20,10
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,0,20,10
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 0) - (20, 10)  [width=10, height=10]
 
@@ -224,7 +207,7 @@ Adjacency: proper — the rectangles share a complete side.
 ### Sub-line adjacency (one side fully contained on another)
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,10,10,10,2,15,7
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,2,15,7
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 2) - (15, 7)  [width=5, height=5]
 
@@ -236,7 +219,7 @@ Adjacency: sub-line — one side is wholly contained within a side of the other.
 ### Partial adjacency
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,10,10,10,5,15,15
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,5,15,15
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 5) - (15, 15)  [width=5, height=10]
 
@@ -250,7 +233,7 @@ Adjacency: partial — the rectangles share part of a side.
 You can ask for only some of the three analyses with `--analysis`:
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -261,7 +244,7 @@ Adjacency: none — the rectangles do not share a side.
 ### Listing demo scenarios
 
 ```bash
-$ ./target/rectangles.jar demo --list
+$ java -jar target/rectangles.jar demo --list
 Available scenarios:
   disjoint              Rectangles are completely separate. No intersection no containment, and no adjacency.
   intersection          Partial overlap with two boundary crossing points. No containment
@@ -275,7 +258,7 @@ Available scenarios:
 ### Running a single demo scenario
 
 ```bash
-$ ./target/rectangles.jar demo --name corner-touch
+$ java -jar target/rectangles.jar demo --name corner-touch
 Scenario: corner-touch
 Rectangles meet at a single corner — contact but no shared side.
 
@@ -292,10 +275,10 @@ Adjacency: none — the rectangles do not share a side.
 Bad input is reported on stdout instead of throwing a stack trace:
 
 ```bash
-$ ./target/rectangles.jar analyze -r 0,0,0,5,1,1,2,2
+$ java -jar target/rectangles.jar analyze -r 0,0,0,5,1,1,2,2
 Error: Invalid Rectangle: width must be greater than 0 (got left=0, right=0 from Point[x=0, y=0] and Point[x=0, y=5]).
 
-$ ./target/rectangles.jar analyze -r 0,0,1,1,2,2,3,3 --analysis bogus
+$ java -jar target/rectangles.jar analyze -r 0,0,1,1,2,2,3,3 --analysis bogus
 Error: Unknown analysis type 'bogus'. Valid values: [INTERSECTION, CONTAINMENT, ADJACENCY]
 ```
 
