@@ -38,14 +38,21 @@ in Java 17.
 
 ## Quick start
 
+**1. Build the self-contained jar**
+
 ```bash
-# 1. Build the self-contained jar
 ./mvnw package
+```
 
-# 2. Take the built-in tour — runs every scenario with a picture
+**2. Take the built-in tour — runs every scenario with a picture**
+
+```bash
 java -jar target/rectangles.jar demo
+```
 
-# 3. Or analyze your own pair of rectangles
+**3. Or analyze your own pair of rectangles**
+
+```bash
 java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
 ```
 
