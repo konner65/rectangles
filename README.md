@@ -44,7 +44,7 @@ in Java 17.
 ./mvnw package
 ```
 
-**2. Take the built-in tour — runs every scenario with a picture**
+**2. Take the built-in tour — runs every scenario**
 
 ```bash
 java -jar target/rectangles.jar demo
@@ -530,11 +530,15 @@ Built-In Commands
 	version: Show version info
 ```
 
-With a command name as an argument, `help` prints the command's full
-NAME / SYNOPSIS / OPTIONS block in either mode:
+Pass a command name as an argument to print that command's full
+NAME / SYNOPSIS / OPTIONS block — handy when you just want the flags for a
+single command without scrolling through everything:
 
 ```bash
 java -jar target/rectangles.jar help analyze
+```
+
+```bash
 java -jar target/rectangles.jar help demo
 ```
 
