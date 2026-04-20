@@ -4,6 +4,7 @@ import org.konner.rectangles.demo.DemoScenarios;
 import org.konner.rectangles.demo.DemoScenarios.Scenario;
 import org.konner.rectangles.exception.InvalidRectangleException;
 import org.konner.rectangles.formatter.RectangleAnalysisFormatter;
+import org.konner.rectangles.formatter.RectangleDrawer;
 import org.konner.rectangles.model.AnalysisType;
 import org.konner.rectangles.model.Rectangle;
 import org.konner.rectangles.model.RectangleAnalysisResult;
@@ -23,6 +24,9 @@ public class RectangleCommands {
 
     @Autowired
     private RectangleAnalysisFormatter formatter;
+
+    @Autowired
+    private RectangleDrawer drawer;
 
     @Autowired
     private DemoScenarios scenarios;
@@ -47,9 +51,14 @@ public class RectangleCommands {
                    comma-separated list of: intersection, containment, adjacency. When
                    omitted all three analyses are run.
 
+                   The --draw option controls whether a small ASCII picture of the two
+                   rectangles is appended to the output. It is on by default; pass
+                   --draw false to suppress it.
+
                    Examples:
                        analyze --rectangles 0,0,10,10,5,5,15,15
                        analyze -r 0,0,10,10,5,5,15,15 --analysis intersection,adjacency
+                       analyze -r 0,0,10,10,5,5,15,15 --draw false
                    """
     )
     public String analyze(
@@ -65,7 +74,14 @@ public class RectangleCommands {
                     shortName = 'a',
                     description = "Comma-separated list of analyses to run: "
                             + "intersection, containment, adjacency. Defaults to all three."
-            ) String analysis
+            ) String analysis,
+            @Option(
+                    longName = "draw",
+                    shortName = 'd',
+                    defaultValue = "true",
+                    description = "Append an ASCII picture of the two rectangles. "
+                            + "Defaults to true; pass --draw false to suppress."
+            ) Boolean draw
     ) {
         int[] coords;
         try {
@@ -90,7 +106,8 @@ public class RectangleCommands {
         }
 
         RectangleAnalysisResult result = analyzer.analyze(a, b, types);
-        return formatter.format(result);
+        String body = formatter.format(result);
+        return shouldDraw(draw) ? body + "\n\n" + drawer.draw(a, b) : body;
     }
 
     @Command(
@@ -105,6 +122,7 @@ public class RectangleCommands {
                        demo                              — run every scenario
                        demo --name intersection          — run a single scenario
                        demo --list                       — list scenario names
+                       demo --draw false                 — suppress the ASCII pictures
 
                    Available scenarios:
                        disjoint                 no contact and no overlap
@@ -126,8 +144,16 @@ public class RectangleCommands {
                     longName = "list",
                     shortName = 'l',
                     description = "List available scenario names and exit without running them."
-            ) boolean list
+            ) boolean list,
+            @Option(
+                    longName = "draw",
+                    shortName = 'd',
+                    defaultValue = "true",
+                    description = "Append an ASCII picture of each scenario's two rectangles. "
+                            + "Defaults to true; pass --draw false to suppress."
+            ) Boolean draw
     ) {
+        boolean drawPictures = shouldDraw(draw);
         if (list) {
             StringBuilder sb = new StringBuilder("Available scenarios:\n");
             scenarios.all().values().forEach(s ->
@@ -137,7 +163,7 @@ public class RectangleCommands {
 
         if (name != null && !name.isBlank()) {
             try {
-                return renderScenario(scenarios.get(name.trim()));
+                return renderScenario(scenarios.get(name.trim()), drawPictures);
             } catch (IllegalArgumentException ex) {
                 return "Error: " + ex.getMessage();
             }
@@ -147,25 +173,23 @@ public class RectangleCommands {
         boolean first = true;
         for (Scenario s : scenarios.all().values()) {
             if (!first) sb.append('\n').append("-".repeat(72)).append("\n\n");
-            sb.append(renderScenario(s));
+            sb.append(renderScenario(s, drawPictures));
             first = false;
         }
         return sb.toString();
     }
 
-    private String renderScenario(Scenario s) {
+    private String renderScenario(Scenario s, boolean draw) {
         StringBuilder sb = new StringBuilder();
         sb.append("Scenario: ").append(s.name()).append('\n');
         sb.append(s.description()).append("\n\n");
         sb.append(formatter.format(analyzer.analyze(s.a(), s.b())));
+        if (draw) {
+            sb.append("\n\n").append(drawer.draw(s.a(), s.b()));
+        }
         return sb.toString();
     }
 
-    /**
-     * Parses exactly eight comma-separated integers, tolerating surrounding
-     * whitespace. Throws {@link IllegalArgumentException} with a human-friendly
-     * message on any parse failure.
-     */
     private static int[] parseCoords(String raw) {
         if (raw == null || raw.isBlank()) {
             throw new IllegalArgumentException("--rectangles is required.");
@@ -191,5 +215,12 @@ public class RectangleCommands {
 
     private static String pad(String s, int width) {
         return s.length() >= width ? s + " " : s + " ".repeat(width - s.length());
+    }
+
+    // Spring Shell only honors @Option(defaultValue=...) for boxed types, so
+    // `draw` is declared as Boolean. A null here means Spring Shell somehow
+    // skipped the default — fall back to true to preserve the contract.
+    private static boolean shouldDraw(Boolean draw) {
+        return draw == null || draw;
     }
 }
