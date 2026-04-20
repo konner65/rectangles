@@ -14,6 +14,28 @@ in Java 17.
 
 ---
 
+## Table of contents
+
+- [Quick start](#quick-start)
+- [Demo](#demo)
+- [Analyzing your own rectangles](#analyzing-your-own-rectangles)
+  - [Filter which analyses you want](#filter-which-analyses-you-want)
+  - [Error handling](#error-handling)
+- [CLI reference](#cli-reference)
+  - [`analyze` — analyse a pair of rectangles](#analyze--analyse-a-pair-of-rectangles)
+  - [`demo` — run pre-built scenarios](#demo--run-pre-built-scenarios)
+  - [`help` — list commands and show per-command help](#help--list-commands-and-show-per-command-help)
+- [Build & run](#build--run)
+  - [Requirements](#requirements)
+  - [Dependencies](#dependencies)
+  - [Build](#build)
+  - [Run](#run)
+- [Definitions](#definitions)
+- [Tests](#tests)
+  - [Coverage report](#coverage-report)
+
+---
+
 ## Quick start
 
 ```bash
@@ -661,7 +683,7 @@ open target/site/jacoco/index.html     # macOS
 xdg-open target/site/jacoco/index.html # Linux
 ```
 
-## The landing page shows overall instruction / branch / line / method / class
+The landing page shows overall instruction / branch / line / method / class
 coverage, and drills down package → class → source line, with covered lines
 highlighted in green, partially-covered in yellow, and missed in red. JaCoCo
 also emits machine-readable `jacoco.xml` and `jacoco.csv` in the same
