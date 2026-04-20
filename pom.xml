@@ -95,9 +95,41 @@
                         self-attach attempt and keeps ./mvnw test green out of
                         the box on modern JDKs. (Mockito 5.14+ ships the
                         Premain-Class directly inside mockito-core.)
+
+                        @{argLine} is Maven's late-expansion syntax: it picks
+                        up the argLine property set by jacoco:prepare-agent at
+                        runtime so the JaCoCo coverage agent is attached
+                        alongside Mockito's agent without overriding it.
                     -->
-                    <argLine>-javaagent:${org.mockito:mockito-core:jar} -XX:+EnableDynamicAgentLoading</argLine>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -XX:+EnableDynamicAgentLoading</argLine>
                 </configuration>
+            </plugin>
+            <!--
+                JaCoCo produces a browseable HTML coverage report at
+                target/site/jacoco/index.html. prepare-agent attaches the
+                coverage agent to the test JVM (via the argLine property
+                consumed by Surefire above), and report is bound to the test
+                phase so `./mvnw test` generates the HTML in one step.
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
