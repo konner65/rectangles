@@ -37,7 +37,7 @@ If you run the jar with **no arguments**, it defaults to `demo`.
 
 ## Demo
 
-The `demo` command walks through seven scenarios. Each scenario prints the analyzed rectangles, the intersection/containment/adjacency, and an ASCII picture.
+The `demo` command walks through seven scenarios. Each scenario prints the analyzed rectangles, the intersection/containment/adjacency, and an ASCII picture of the rectangles.
 
 Run the whole demo at once with `java -jar target/rectangles.jar demo`, or
 pick a single scenario with `--name` (e.g. `demo --name proper-adjacency`).
@@ -59,11 +59,9 @@ which prints the seven built-in scenarios:
 | `partial-adjacency`  | A's right side and B's left side share only a part of a side.                        |
 | `corner-touch`       | Rectangles meet at a single corner — contact but no shared side.                     |
 
-### ASCII picture
+#### ASCII picture
 
-Every scenario's picture is a perimeter-only drawing:
-
-Interiors are left blank so the two outlines stay easy to read. If one
+Every scenario's picture is a perimeter-only drawing: Interiors are left blank so the two outlines stay easy to read. If one
 rectangle is so small relative to the other that it would collapse to fewer
 than two cells in either direction, it is drawn as a single letter marking
 its location.
@@ -367,7 +365,7 @@ rectangle as two opposite corners (any two opposite corners will do — the
 tool normalises them):
 
 ```bash
-java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
+java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15 --draw false
 ```
 
 ```text
@@ -377,11 +375,7 @@ Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 Intersection: 2 points (5, 10), (10, 5)
 Containment: none — neither rectangle wholly contains the other.
 Adjacency: none — the rectangles do not share a side.
-...
 ```
-
-(The `...` is the same ASCII picture as the *intersection* scenario — pass
-`--draw false` to suppress it.)
 
 ### Filter which analyses you want
 
@@ -464,10 +458,10 @@ With no options, `demo` runs every scenario in turn. Available scenarios:
 With no arguments, `help` lists every available command grouped by category,
 with the **Rectangle Analysis Commands** group first.
 
-In one-shot mode (the default) only the rectangle-analysis commands are
-listed. The Spring Shell built-ins (`clear`, `quit`, `script`, `version`)
-don't apply when you're just running a single command and exiting, so they
-are hidden to keep the output focused:
+In one-shot mode (the default) the built-ins that only make sense inside a
+REPL session — `clear`, `quit`/`exit`, and `script` — are hidden so the
+output stays focused on what you can actually do. `help` and `version` are
+kept because they're still useful when running a single command:
 
 ```bash
 java -jar target/rectangles.jar help
@@ -479,10 +473,13 @@ AVAILABLE COMMANDS
 Rectangle Analysis Commands
 	analyze: Analyze two rectangles for intersection, containment, and adjacency.
 	demo: Run a built-in demo scenario (or all of them).
+Built-In Commands
+	help: Display help about available commands
+	version: Show version info
 ```
 
-In [interactive mode](#interactive-mode) the built-ins are relevant, so
-they're listed in their own group below:
+In [interactive mode](#interactive-mode) all of the Spring Shell built-ins
+are relevant, so they're listed in full:
 
 ```text
 AVAILABLE COMMANDS
