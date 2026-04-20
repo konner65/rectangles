@@ -31,6 +31,50 @@ The build produces an executable jar at:
 target/rectangles-0.0.1-SNAPSHOT.jar
 ```
 
+## Tests
+
+The project ships with a JUnit 5 / Mockito / AssertJ test suite (all bundled
+through `spring-boot-starter-test`). To run the entire suite:
+
+```bash
+./mvnw test
+```
+
+To run only the tests in a single class, use Surefire's `-Dtest=` flag:
+
+```bash
+./mvnw test -Dtest=RectangleAnalysisServiceImplTest
+```
+
+You can also target a single nested class or a single method:
+
+```bash
+./mvnw test -Dtest='RectangleAnalysisServiceImplTest$Intersection'
+./mvnw test -Dtest='RectangleAnalysisServiceImplTest#analyzeWithSubsetSkipsOtherSections'
+```
+
+To build the jar **and** run the tests in one go (the default `package` goal):
+
+```bash
+./mvnw package
+```
+
+After a run, the standard Surefire reports land in `target/surefire-reports/`.
+
+The suite is organised by package so each test sits next to the class it
+exercises:
+
+| Test class | What it covers |
+|---|---|
+| `model.PointTest` | The `Point` record's accessors and value-equality. |
+| `model.RectangleTest` | Constructor normalisation, all validation failure modes, `contains`, `equals` / `hashCode`, and `toString`. |
+| `model.AnalysisTypeTest` | `AnalysisType.parse` for null / blank / case / whitespace / unknown-token inputs. |
+| `service.RectangleAnalysisServiceImplTest` | Every branch of `intersection`, `containment`, `adjacency`, and the `analyze` overloads (default, subset, null types, empty types). |
+| `formatter.RectangleAnalysisFormatterImplTest` | Every enum value rendered by the formatter, plural/singular intersection wording, and null-section omission. |
+| `demo.DemoScenariosTest` | Scenario registry order, lookup by name, error messaging for unknown scenarios. |
+| `shell.RectangleCommandsTest` | Both shell commands with the autowired `RectangleAnalysisService`, `RectangleAnalysisFormatter`, and `DemoScenarios` replaced by Mockito mocks via `@InjectMocks`. Asserts argument capture, error paths, and that the formatter is never invoked on validation failures. |
+| `RectanglesApplicationTests` | Spring Boot context-load smoke test. |
+
 ## Run
 
 The application is a one-shot CLI: pass a command and its options as program
