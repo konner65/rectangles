@@ -1,14 +1,14 @@
 # Rectangles
 
-A small command-line tool that analyses pairs of axis-aligned rectangles and
+A small command-line tool that analyzes pairs of axis-aligned rectangles and
 reports:
 
 1. **Intersection** — the points at which the rectangle boundaries cross.
 2. **Containment** — whether one rectangle wholly contains the other.
-3. **Adjacency** — whether the rectangles share a side, classified as
-   *proper*, *sub-line*, or *partial*.
+3. **Adjacency** — whether the rectangles share a side, classified as *sub-line*,
+   *proper*, or *partial*.
 
-The project is a Spring Boot / Spring Shell application written in Java 17+.
+The project is a Spring Boot / Spring Shell application written in Java 17.
 
 ---
 
@@ -57,10 +57,7 @@ launch it.
 
 ## Tests
 
-The project ships with a JUnit 5 / Mockito / AssertJ test suite (all bundled
-through `spring-boot-starter-test`). The collaborators wired into
-`RectangleCommands` via `@Autowired` are replaced with Mockito mocks via
-`@InjectMocks`, so the shell-layer tests do not need a Spring context.
+The project ships with a JUnit 5 / Mockito / AssertJ test suite
 
 Run the entire suite:
 
