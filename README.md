@@ -6,7 +6,7 @@ describes three relationships:
 1. **Intersection** — the points where the rectangle boundaries meet.
 2. **Containment** — whether one rectangle wholly contains the other.
 3. **Adjacency** — whether the rectangles share a side, classified as
-   *proper*, *sub-line*, or *partial*.
+  *proper*, *sub-line*, or *partial*.
 
 It also draws the pair as an ASCII picture so you can *see* the relationship
 at a glance. The project is a Spring Boot / Spring Shell application written
@@ -49,15 +49,17 @@ java -jar target/rectangles.jar demo --list
 
 which prints the seven built-in scenarios:
 
-| Name                 | Description                                                                          |
-|----------------------|--------------------------------------------------------------------------------------|
-| `disjoint`           | Rectangles are completely separate — no intersection, no containment, no adjacency.  |
-| `intersection`       | Partial overlap with two boundary crossing points. No containment.                   |
-| `containment`        | Strict containment — B sits entirely inside A with no boundary contact.              |
-| `sub-line-adjacency` | B's left side is wholly contained inside A's right side.                             |
-| `proper-adjacency`   | Two rectangles share a full side (`A.right == B.left`).                              |
-| `partial-adjacency`  | A's right side and B's left side share only a part of a side.                        |
-| `corner-touch`       | Rectangles meet at a single corner — contact but no shared side.                     |
+
+| Name                 | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `disjoint`           | Rectangles are completely separate — no intersection, no containment, no adjacency. |
+| `intersection`       | Partial overlap with two boundary crossing points. No containment.                  |
+| `containment`        | Strict containment — B sits entirely inside A with no boundary contact.             |
+| `sub-line-adjacency` | B's left side is wholly contained inside A's right side.                            |
+| `proper-adjacency`   | Two rectangles share a full side (`A.right == B.left`).                             |
+| `partial-adjacency`  | A's right side and B's left side share only a part of a side.                       |
+| `corner-touch`       | Rectangles meet at a single corner — contact but no shared side.                    |
+
 
 #### ASCII picture
 
@@ -426,11 +428,13 @@ java -jar target/rectangles.jar analyze \
     [--draw true|false]
 ```
 
+
 | Option         | Short | Required | Description                                                                                              |
-|----------------|:-----:|:--------:|----------------------------------------------------------------------------------------------------------|
-| `--rectangles` | `-r`  |   yes    | Eight comma-separated integers giving two opposite corners of each rectangle: `x1,y1,x2,y2,x3,y3,x4,y4`. |
-| `--analysis`   | `-a`  |    no    | Comma-separated subset of `intersection`, `containment`, `adjacency`. Defaults to all three.             |
-| `--draw`       | `-d`  |    no    | Append an ASCII picture of the two rectangles. Defaults to `true`; pass `--draw false` to suppress.      |
+| -------------- | ----- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `--rectangles` | `-r`  | yes      | Eight comma-separated integers giving two opposite corners of each rectangle: `x1,y1,x2,y2,x3,y3,x4,y4`. |
+| `--analysis`   | `-a`  | no       | Comma-separated subset of `intersection`, `containment`, `adjacency`. Defaults to all three.             |
+| `--draw`       | `-d`  | no       | Append an ASCII picture of the two rectangles. Defaults to `true`; pass `--draw false` to suppress.      |
+
 
 The two corners may be given in any order — the rectangle is normalised so
 `(x1,y1)` and `(x2,y2)` describe opposite corners. They must not share an x
@@ -443,11 +447,13 @@ returns an error.
 java -jar target/rectangles.jar demo [--name <scenario>] [--list] [--draw true|false]
 ```
 
+
 | Option   | Short | Description                                                                                                     |
-|----------|:-----:|-----------------------------------------------------------------------------------------------------------------|
+| -------- | ----- | --------------------------------------------------------------------------------------------------------------- |
 | `--name` | `-n`  | Run only the named scenario (see `--list` for names).                                                           |
 | `--list` | `-l`  | List all scenario names and descriptions, then exit.                                                            |
 | `--draw` | `-d`  | Append an ASCII picture of each scenario's two rectangles. Defaults to `true`; pass `--draw false` to suppress. |
+
 
 With no options, `demo` runs every scenario in turn. Available scenarios:
 `disjoint`, `intersection`, `containment`, `sub-line-adjacency`,
@@ -511,16 +517,18 @@ java -jar target/rectangles.jar help demo
 
 - **Java 17 or newer** (verified on Java 17 and Java 25).
 - The bundled **Maven wrapper** (`./mvnw`) — no separate Maven install
-  required.
+required.
 - An internet connection on **first build only**, so Maven can download the
-  dependencies listed below into your local `~/.m2/repository`. No network
-  access is needed to run the jar afterwards.
+dependencies listed below into your local `~/.m2/repository`. No network
+access is needed to run the jar afterwards.
 
 ### Dependencies
 
 - **Parent POM:** `spring-boot-starter-parent`
 - **Runtime:** `spring-shell-starter`
 - **Test:** `spring-boot-starter-test`, `spring-shell-starter-test`
+- **Build plugins:** `maven-surefire-plugin` (test runner),
+`jacoco-maven-plugin` (HTML coverage report)
 
 ### Build
 
@@ -604,18 +612,18 @@ The formal semantics implemented here:
 - **Intersection points** are the points where rectangle *boundaries* meet.
   - Overlapping rectangles produce two boundary crossings.
   - Adjacent rectangles produce two points — the endpoints of the shared
-    segment.
+  segment.
   - Two rectangles meeting at a single corner produce one intersection point.
   - Strict containment with no boundary contact produces an empty
-    intersection.
+  intersection.
 - **Containment** considers a rectangle to contain another if every point of
-  the inner rectangle lies inside or on the boundary of the outer one. Two
-  identical rectangles are reported as `equal`, not as containing each other.
+the inner rectangle lies inside or on the boundary of the outer one. Two
+identical rectangles are reported as `equal`, not as containing each other.
 - **Adjacency** requires a shared edge segment of *non-zero* length. Two
-  rectangles meeting at a single corner are **not** adjacent.
+rectangles meeting at a single corner are **not** adjacent.
   - **Proper** — the shared segment equals a full side of both rectangles.
   - **Sub-line** — the shared segment equals a full side of exactly one of
-    the rectangles (i.e. one side is wholly contained within the other).
+  the rectangles (i.e. one side is wholly contained within the other).
   - **Partial** — the shared segment is a strict subset of both sides.
 
 ---
@@ -642,4 +650,20 @@ Surefire reports are written to `target/surefire-reports/`.
 > On JDK 24+, Mockito's inline mock-maker needs the `byte-buddy` agent to be
 > loaded up-front; the POM wires this in automatically so `./mvnw test` works
 > out of the box on modern JDKs.
----
+
+### Coverage report
+
+Running `./mvnw test` also produces a **JaCoCo** HTML coverage report. Open it
+in a browser:
+
+```bash
+open target/site/jacoco/index.html     # macOS
+xdg-open target/site/jacoco/index.html # Linux
+```
+
+## The landing page shows overall instruction / branch / line / method / class
+coverage, and drills down package → class → source line, with covered lines
+highlighted in green, partially-covered in yellow, and missed in red. JaCoCo
+also emits machine-readable `jacoco.xml` and `jacoco.csv` in the same
+directory for CI/reporting integrations.
+
