@@ -88,6 +88,7 @@ exercises:
 | `model.AnalysisTypeTest` | `AnalysisType.parse` for null / blank / case / whitespace / unknown-token inputs. |
 | `service.RectangleAnalysisServiceImplTest` | Every branch of `intersection`, `containment`, `adjacency`, and the `analyze` overloads (default, subset, null types, empty types). |
 | `formatter.RectangleAnalysisFormatterImplTest` | Every enum value rendered by the formatter, plural/singular intersection wording, and null-section omission. |
+| `formatter.RectangleDrawerImplTest` | Structural invariants of the ASCII grid, scaling behaviour, per-relationship cell-type assertions (overlap, containment, disjoint, equal, corner-touch, proper adjacency), and the single-letter collapse for tiny rectangles. |
 | `demo.DemoScenariosTest` | Scenario registry order, lookup by name, error messaging for unknown scenarios. |
 | `shell.RectangleCommandsTest` | Both shell commands with the autowired `RectangleAnalysisService`, `RectangleAnalysisFormatter`, and `DemoScenarios` replaced by Mockito mocks via `@InjectMocks`. Asserts argument capture, error paths, and that the formatter is never invoked on validation failures. |
 | `RectanglesApplicationTests` | Spring Boot context-load smoke test. |
@@ -125,13 +126,15 @@ If you launch the jar with **no arguments** it runs `demo` by default.
 ```bash
 java -jar target/rectangles.jar analyze \
     --rectangles x1,y1,x2,y2,x3,y3,x4,y4 \
-    [--analysis intersection,containment,adjacency]
+    [--analysis intersection,containment,adjacency] \
+    [--draw true|false]
 ```
 
 | Option         | Short | Required | Description                                                                                              |
 |----------------|:-----:|:--------:|----------------------------------------------------------------------------------------------------------|
 | `--rectangles` | `-r`  |   yes    | Eight comma-separated integers giving two opposite corners of each rectangle: `x1,y1,x2,y2,x3,y3,x4,y4`. |
 | `--analysis`   | `-a`  |    no    | Comma-separated subset of `intersection`, `containment`, `adjacency`. Defaults to all three.             |
+| `--draw`       | `-d`  |    no    | Append an ASCII picture of the two rectangles. Defaults to `true`; pass `--draw false` to suppress.      |
 
 The two corners may be supplied in any order — the rectangle is normalised so
 that `(x1,y1)` and `(x2,y2)` describe opposite corners. They must not share an
@@ -141,13 +144,14 @@ returns an error.
 ### `demo` — run pre-built scenarios
 
 ```bash
-java -jar target/rectangles.jar demo [--name <scenario>] [--list]
+java -jar target/rectangles.jar demo [--name <scenario>] [--list] [--draw true|false]
 ```
 
-| Option   | Short | Description                                              |
-|----------|:-----:|----------------------------------------------------------|
-| `--name` | `-n`  | Run only the named scenario (see `--list` for names).    |
-| `--list` | `-l`  | List all scenario names and descriptions, then exit.     |
+| Option   | Short | Description                                                                                          |
+|----------|:-----:|------------------------------------------------------------------------------------------------------|
+| `--name` | `-n`  | Run only the named scenario (see `--list` for names).                                                |
+| `--list` | `-l`  | List all scenario names and descriptions, then exit.                                                 |
+| `--draw` | `-d`  | Append an ASCII picture of each scenario's two rectangles. Defaults to `true`; pass `--draw false` to suppress. |
 
 With no options, `demo` runs every scenario in turn.
 
@@ -168,7 +172,11 @@ java -jar target/rectangles.jar help analyze
 
 ## Example input / output
 
-### Two overlapping rectangles
+### Two overlapping rectangles (full default output, picture included)
+
+By default `analyze` and `demo` both append a small ASCII picture of the two
+rectangles below the textual analysis — this is what you see when the command
+is run without any extra flags:
 
 ```bash
 $ java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
@@ -178,12 +186,48 @@ Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 Intersection: 2 points (5, 10), (10, 5)
 Containment: none — neither rectangle wholly contains the other.
 Adjacency: none — the rectangles do not share a side.
+
+...................................
+............bbbbbbbbbbbbbbbbbbbbb..
+............b...................b..
+............b...................b..
+............b...................b..
+............b...................b..
+..aaaaaaaaaa#aaaaaaaaaa.........b..
+..a.........b.........a.........b..
+..a.........b.........a.........b..
+..a.........b.........a.........b..
+..a.........b.........a.........b..
+..a.........bbbbbbbbbb#bbbbbbbbbb..
+..a...................a............
+..a...................a............
+..a...................a............
+..a...................a............
+..aaaaaaaaaaaaaaaaaaaaa............
+...................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
+
+The picture shows just the **perimeters** of the two rectangles:
+
+- `a` — cell lies on rectangle A's boundary only.
+- `b` — cell lies on rectangle B's boundary only.
+- `#` — the two boundaries meet at that cell (boundary crossing, shared
+  segment, or coincident corner).
+- `.` — empty space.
+
+Interiors are left blank so the two outlines stay readable. If one rectangle
+is so small compared to the other that it would collapse to fewer than two
+cells in either direction, it is drawn as a single letter marking its
+location.
+
+**The remaining examples pass `--draw false` to keep the README short — when
+you run these locally without that flag you will get a picture too.**
 
 ### Containment
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,20,20,5,5,15,15
+$ java -jar target/rectangles.jar analyze -r 0,0,20,20,5,5,15,15 --draw false
 Rectangle A: (0, 0) - (20, 20)  [width=20, height=20]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -195,7 +239,7 @@ Adjacency: none — the rectangles do not share a side.
 ### Proper adjacency (full shared side)
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,0,20,10
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,0,20,10 --draw false
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 0) - (20, 10)  [width=10, height=10]
 
@@ -207,7 +251,7 @@ Adjacency: proper — the rectangles share a complete side.
 ### Sub-line adjacency (one side fully contained on another)
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,2,15,7
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,2,15,7 --draw false
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 2) - (15, 7)  [width=5, height=5]
 
@@ -219,7 +263,7 @@ Adjacency: sub-line — one side is wholly contained within a side of the other.
 ### Partial adjacency
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,5,15,15
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,5,15,15 --draw false
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 5) - (15, 15)  [width=5, height=10]
 
@@ -233,7 +277,7 @@ Adjacency: partial — the rectangles share part of a side.
 You can ask for only some of the three analyses with `--analysis`:
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency
+$ java -jar target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency --draw false
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -255,7 +299,10 @@ Available scenarios:
   corner-touch          Rectangles meet at a single corner — contact but no shared side.
 ```
 
-### Running a single demo scenario
+### Running a single demo scenario (with picture)
+
+`demo` also draws by default. A corner-touch scenario shows a single `#` cell
+where the two rectangles meet:
 
 ```bash
 $ java -jar target/rectangles.jar demo --name corner-touch
@@ -268,7 +315,24 @@ Rectangle B: (5, 5) - (10, 10)  [width=5, height=5]
 Intersection: 1 point (5, 5)
 Containment: none — neither rectangle wholly contains the other.
 Adjacency: none — the rectangles do not share a side.
+
+.........................
+............bbbbbbbbbbb..
+............b.........b..
+............b.........b..
+............b.........b..
+............b.........b..
+..aaaaaaaaaa#bbbbbbbbbb..
+..a.........a............
+..a.........a............
+..a.........a............
+..a.........a............
+..aaaaaaaaaaa............
+.........................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
+
+Pass `--draw false` to skip the pictures when running all scenarios at once.
 
 ### Error handling
 
@@ -318,7 +382,9 @@ src/main/java/org/konner/rectangles
 │   └── RectangleAnalysisServiceImpl.java
 ├── formatter/
 │   ├── RectangleAnalysisFormatter.java        Output interface
-│   └── RectangleAnalysisFormatterImpl.java    Plain-text implementation
+│   ├── RectangleAnalysisFormatterImpl.java    Plain-text implementation
+│   ├── RectangleDrawer.java                   ASCII drawing interface
+│   └── RectangleDrawerImpl.java               Perimeter-only ASCII renderer
 ├── demo/DemoScenarios.java             Built-in demo scenarios for `demo`
 ├── model/
 │   ├── Rectangle.java

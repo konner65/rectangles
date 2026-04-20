@@ -66,6 +66,39 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!--
+                Expose each test-scope dependency's resolved jar path as a
+                property of the form ${groupId:artifactId:type}. We use this
+                below to wire Mockito's premain agent into the test JVM.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>resolve-test-dep-paths</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--
+                        JDK 24+ disallows dynamic agent self-attach by default,
+                        which breaks Mockito's inline mock-maker. Attaching
+                        Mockito's bundled premain agent explicitly avoids any
+                        self-attach attempt and keeps ./mvnw test green out of
+                        the box on modern JDKs. (Mockito 5.14+ ships the
+                        Premain-Class directly inside mockito-core.)
+                    -->
+                    <argLine>-javaagent:${org.mockito:mockito-core:jar} -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
