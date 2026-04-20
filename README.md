@@ -1,182 +1,129 @@
 # Rectangles
 
-A small command-line tool that analyzes pairs of axis-aligned rectangles and
-reports:
+A command-line tool that analyzes pairs of axis-aligned rectangles and
+describes three relationships:
 
-1. **Intersection** — the points at which the rectangle boundaries cross.
+1. **Intersection** — the points where the rectangle boundaries meet.
 2. **Containment** — whether one rectangle wholly contains the other.
-3. **Adjacency** — whether the rectangles share a side, classified as *sub-line*,
-   *proper*, or *partial*.
+3. **Adjacency** — whether the rectangles share a side, classified as
+   *proper*, *sub-line*, or *partial*.
 
-The project is a Spring Boot / Spring Shell application written in Java 17.
+It also draws the pair as an ASCII picture so you can *see* the relationship
+at a glance. The project is a Spring Boot / Spring Shell application written
+in Java 17.
 
 ---
-
-## Requirements
-
-- **Java 17 or newer** (the build was verified on Java 17 and Java 25)
-- The bundled **Maven wrapper** (`./mvnw`) — no separate Maven install required
 
 ## Quick start
 
 ```bash
-# 1. Build (and run the tests)
+# 1. Build the self-contained jar
 ./mvnw package
 
-# 2. Run a built-in demo
+# 2. Take the built-in tour — runs every scenario with a picture
 java -jar target/rectangles.jar demo
 
-# 3. Or analyse your own pair of rectangles
+# 3. Or analyze your own pair of rectangles
 java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
 ```
 
-That's it. The rest of this README walks through each step in detail.
+If you run the jar with **no arguments**, it defaults to `demo`.
+
+> Running `./mvnw package` will also run the full test suite. To skip tests,
+> use `./mvnw -DskipTests package`. See [Build & run](#build--run) for more
+> detail.
 
 ---
 
-## Build
+## Demo
 
-From the project root:
+The `demo` command walks through seven scenarios. Each scenario prints the analyzed rectangles, the intersection/containment/adjacency, and an ASCII picture.
 
-```bash
-./mvnw package           # build + run tests
-./mvnw -DskipTests package   # build, skip tests
-```
-
-Either command produces a single self-contained jar at:
-
-```
-target/rectangles.jar
-```
-
-The filename has **no version suffix** — it's just `rectangles.jar`. This is
-configured via `<finalName>` in the POM. See [Run](#run) below for how to
-launch it.
-
----
-
-## Tests
-
-The project ships with a JUnit 5 / Mockito / AssertJ test suite
-
-Run the entire suite:
+Run the whole demo at once with `java -jar target/rectangles.jar demo`, or
+pick a single scenario with `--name` (e.g. `demo --name proper-adjacency`).
+Get the list any time with:
 
 ```bash
-./mvnw test
+java -jar target/rectangles.jar demo --list
 ```
 
-Run a single class, nested class, or method using Surefire's `-Dtest=` flag:
+which prints the seven built-in scenarios:
+
+| Name                 | Description                                                                          |
+|----------------------|--------------------------------------------------------------------------------------|
+| `disjoint`           | Rectangles are completely separate — no intersection, no containment, no adjacency.  |
+| `intersection`       | Partial overlap with two boundary crossing points. No containment.                   |
+| `containment`        | Strict containment — B sits entirely inside A with no boundary contact.              |
+| `sub-line-adjacency` | B's left side is wholly contained inside A's right side.                             |
+| `proper-adjacency`   | Two rectangles share a full side (`A.right == B.left`).                              |
+| `partial-adjacency`  | A's right side and B's left side share only a part of a side.                        |
+| `corner-touch`       | Rectangles meet at a single corner — contact but no shared side.                     |
+
+### ASCII picture
+
+Every scenario's picture is a perimeter-only drawing:
+
+Interiors are left blank so the two outlines stay easy to read. If one
+rectangle is so small relative to the other that it would collapse to fewer
+than two cells in either direction, it is drawn as a single letter marking
+its location.
+
+You can always turn the picture off for any command with `--draw false` (or
+`-d false`) — for example when piping output into another tool.
+
+### 1 — Disjoint
+
+Two completely separate rectangles. No intersection, no containment, no adjacency.
 
 ```bash
-./mvnw test -Dtest=RectangleAnalysisServiceImplTest
-./mvnw test -Dtest='RectangleAnalysisServiceImplTest$Intersection'
-./mvnw test -Dtest='RectangleAnalysisServiceImplTest#analyzeWithSubsetSkipsOtherSections'
+java -jar target/rectangles.jar demo --name disjoint
 ```
 
-Surefire reports are written to `target/surefire-reports/`.
+```text
+Scenario: disjoint
+Rectangles are completely separate. No intersection no containment, and no adjacency.
 
-The suite is organised by package so each test sits next to the class it
-exercises:
+Rectangle A: (0, 0) - (5, 5)  [width=5, height=5]
+Rectangle B: (10, 10) - (15, 15)  [width=5, height=5]
 
-| Test class | What it covers |
-|---|---|
-| `model.PointTest` | The `Point` record's accessors and value-equality. |
-| `model.RectangleTest` | Constructor normalisation, all validation failure modes, `contains`, `equals` / `hashCode`, and `toString`. |
-| `model.AnalysisTypeTest` | `AnalysisType.parse` for null / blank / case / whitespace / unknown-token inputs. |
-| `service.RectangleAnalysisServiceImplTest` | Every branch of `intersection`, `containment`, `adjacency`, and the `analyze` overloads (default, subset, null types, empty types). |
-| `formatter.RectangleAnalysisFormatterImplTest` | Every enum value rendered by the formatter, plural/singular intersection wording, and null-section omission. |
-| `formatter.RectangleDrawerImplTest` | Structural invariants of the ASCII grid, scaling behaviour, per-relationship cell-type assertions (overlap, containment, disjoint, equal, corner-touch, proper adjacency), and the single-letter collapse for tiny rectangles. |
-| `demo.DemoScenariosTest` | Scenario registry order, lookup by name, error messaging for unknown scenarios. |
-| `shell.RectangleCommandsTest` | Both shell commands with the autowired `RectangleAnalysisService`, `RectangleAnalysisFormatter`, and `DemoScenarios` replaced by Mockito mocks via `@InjectMocks`. Asserts argument capture, error paths, and that the formatter is never invoked on validation failures. |
-| `RectanglesApplicationTests` | Spring Boot context-load smoke test. |
+Intersection: none — the rectangle boundaries do not cross.
+Containment: none — neither rectangle wholly contains the other.
+Adjacency: none — the rectangles do not share a side.
 
----
-
-## Run
-
-The application is a one-shot CLI: pass a command and its options as program
-arguments and it prints the result and exits.
-
-There are two equivalent ways to invoke it. **All examples in this README use
-the first form.**
-
-### 1. Use `java -jar` (cross-platform — Mac, Linux, Windows)
-
-```bash
-java -jar target/rectangles.jar <command> [options]
+...................................
+......................bbbbbbbbbbb..
+......................b.........b..
+......................b.........b..
+......................b.........b..
+......................b.........b..
+......................bbbbbbbbbbb..
+...................................
+...................................
+...................................
+...................................
+..aaaaaaaaaaa......................
+..a.........a......................
+..a.........a......................
+..a.........a......................
+..a.........a......................
+..aaaaaaaaaaa......................
+...................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-### 2. Run via Maven without building a jar
+### 2 — Intersection
+
+The two rectangles overlap. Each boundary enters and exits the other, giving
+two crossing points.
 
 ```bash
-./mvnw -q spring-boot:run -Dspring-boot.run.arguments="analyze --rectangles 0,0,10,10,5,5,15,15"
+java -jar target/rectangles.jar demo --name intersection
 ```
 
-If you launch the jar with **no arguments** it runs `demo` by default.
+```text
+Scenario: intersection
+Partial overlap with two boundary crossing points. No containment
 
----
-
-## Commands
-
-### `analyze` — analyse a pair of rectangles
-
-```bash
-java -jar target/rectangles.jar analyze \
-    --rectangles x1,y1,x2,y2,x3,y3,x4,y4 \
-    [--analysis intersection,containment,adjacency] \
-    [--draw true|false]
-```
-
-| Option         | Short | Required | Description                                                                                              |
-|----------------|:-----:|:--------:|----------------------------------------------------------------------------------------------------------|
-| `--rectangles` | `-r`  |   yes    | Eight comma-separated integers giving two opposite corners of each rectangle: `x1,y1,x2,y2,x3,y3,x4,y4`. |
-| `--analysis`   | `-a`  |    no    | Comma-separated subset of `intersection`, `containment`, `adjacency`. Defaults to all three.             |
-| `--draw`       | `-d`  |    no    | Append an ASCII picture of the two rectangles. Defaults to `true`; pass `--draw false` to suppress.      |
-
-The two corners may be supplied in any order — the rectangle is normalised so
-that `(x1,y1)` and `(x2,y2)` describe opposite corners. They must not share an
-x or y coordinate, otherwise the rectangle is degenerate and the command
-returns an error.
-
-### `demo` — run pre-built scenarios
-
-```bash
-java -jar target/rectangles.jar demo [--name <scenario>] [--list] [--draw true|false]
-```
-
-| Option   | Short | Description                                                                                          |
-|----------|:-----:|------------------------------------------------------------------------------------------------------|
-| `--name` | `-n`  | Run only the named scenario (see `--list` for names).                                                |
-| `--list` | `-l`  | List all scenario names and descriptions, then exit.                                                 |
-| `--draw` | `-d`  | Append an ASCII picture of each scenario's two rectangles. Defaults to `true`; pass `--draw false` to suppress. |
-
-With no options, `demo` runs every scenario in turn.
-
-Available scenarios: `disjoint`, `intersection`, `containment`,
-`sub-line-adjacency`, `proper-adjacency`, `partial-adjacency`, `corner-touch`.
-
-### `help` — built-in help
-
-Spring Shell provides a `help` command that lists every command and shows the
-detailed help text for a given one:
-
-```bash
-java -jar target/rectangles.jar help
-java -jar target/rectangles.jar help analyze
-```
-
----
-
-## Example input / output
-
-### Two overlapping rectangles (full default output, picture included)
-
-By default `analyze` and `demo` both append a small ASCII picture of the two
-rectangles below the textual analysis — this is what you see when the command
-is run without any extra flags:
-
-```bash
-$ java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
@@ -205,104 +152,186 @@ Adjacency: none — the rectangles do not share a side.
 Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-The picture shows just the **perimeters** of the two rectangles:
+Notice the two `#` cells — those are the reported intersection points,
+`(5, 10)` and `(10, 5)`.
 
-- `a` — cell lies on rectangle A's boundary only.
-- `b` — cell lies on rectangle B's boundary only.
-- `#` — the two boundaries meet at that cell (boundary crossing, shared
-  segment, or coincident corner).
-- `.` — empty space.
+### 3 — Containment
 
-Interiors are left blank so the two outlines stay readable. If one rectangle
-is so small compared to the other that it would collapse to fewer than two
-cells in either direction, it is drawn as a single letter marking its
-location.
-
-**The remaining examples pass `--draw false` to keep the README short — when
-you run these locally without that flag you will get a picture too.**
-
-### Containment
+B sits strictly inside A. The boundaries never touch, so the intersection is
+empty and the two outlines don't share a single cell.
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,20,20,5,5,15,15 --draw false
+java -jar target/rectangles.jar demo --name containment
+```
+
+```text
+Scenario: containment
+Strict containment - B sits entirely inside A with no boundary contact.
+
 Rectangle A: (0, 0) - (20, 20)  [width=20, height=20]
 Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
 
 Intersection: none — the rectangle boundaries do not cross.
 Containment: A contains B — rectangle A wholly contains rectangle B.
 Adjacency: none — the rectangles do not share a side.
+
+.............................................
+..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..
+..a.......................................a..
+..a.......................................a..
+..a.......................................a..
+..a.......................................a..
+..a.........bbbbbbbbbbbbbbbbbbbbb.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........b...................b.........a..
+..a.........bbbbbbbbbbbbbbbbbbbbb.........a..
+..a.......................................a..
+..a.......................................a..
+..a.......................................a..
+..a.......................................a..
+..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..
+.............................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-### Proper adjacency (full shared side)
+### 4 —Adjacency (sub-line)
+
+B's left side is wholly contained inside A's right side: one side sits
+entirely on the other, but the other side extends further. The shared stretch
+is a full side of *one* rectangle, not both.
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,0,20,10 --draw false
-Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
-Rectangle B: (10, 0) - (20, 10)  [width=10, height=10]
-
-Intersection: 2 points (10, 0), (10, 10)
-Containment: none — neither rectangle wholly contains the other.
-Adjacency: proper — the rectangles share a complete side.
+java -jar target/rectangles.jar demo --name sub-line-adjacency
 ```
 
-### Sub-line adjacency (one side fully contained on another)
+```text
+Scenario: sub-line-adjacency
+B's left side is wholly contained inside A's right side.
 
-```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,2,15,7 --draw false
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 2) - (15, 7)  [width=5, height=5]
 
 Intersection: 2 points (10, 2), (10, 7)
 Containment: none — neither rectangle wholly contains the other.
 Adjacency: sub-line — one side is wholly contained within a side of the other.
+
+...................................
+..aaaaaaaaaaaaaaaaaaaaa............
+..a...................a............
+..a...................a............
+..a...................#bbbbbbbbbb..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#bbbbbbbbbb..
+..a...................a............
+..aaaaaaaaaaaaaaaaaaaaa............
+...................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-### Partial adjacency
+The run of `#` characters is the shared segment; the two endpoints,
+`(10, 2)` and `(10, 7)`, are the reported intersection points.
+
+### 5 — Adjacency (proper)
+
+Two rectangles share a complete side. The full right edge of A is also the
+full left edge of B.
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,10,5,15,15 --draw false
+java -jar target/rectangles.jar demo --name proper-adjacency
+```
+
+```text
+Scenario: proper-adjacency
+Two rectangles share a full side (A.right == B.left).
+
+Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
+Rectangle B: (10, 0) - (20, 10)  [width=10, height=10]
+
+Intersection: 2 points (10, 0), (10, 10)
+Containment: none — neither rectangle wholly contains the other.
+Adjacency: proper — the rectangles share a complete side.
+
+.............................................
+..aaaaaaaaaaaaaaaaaaaa#bbbbbbbbbbbbbbbbbbbb..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..a...................#...................b..
+..aaaaaaaaaaaaaaaaaaaa#bbbbbbbbbbbbbbbbbbbb..
+.............................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
+```
+
+Every cell along the shared edge is `#`.
+
+### 6 — Adjacency (partial)
+
+A's right side and B's left side overlap, but neither side is fully covered
+by the other — they share only a part of a side.
+
+```bash
+java -jar target/rectangles.jar demo --name partial-adjacency
+```
+
+```text
+Scenario: partial-adjacency
+A's right side and B's left side share only a part of a side.
+
 Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
 Rectangle B: (10, 5) - (15, 15)  [width=5, height=10]
 
-Intersection: 2 points (10, 10), (10, 5)
+Intersection: 2 points (10, 5), (10, 10)
 Containment: none — neither rectangle wholly contains the other.
 Adjacency: partial — the rectangles share part of a side.
+
+...................................
+......................bbbbbbbbbbb..
+......................b.........b..
+......................b.........b..
+......................b.........b..
+......................b.........b..
+..aaaaaaaaaaaaaaaaaaaa#.........b..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#.........b..
+..a...................#bbbbbbbbbb..
+..a...................a............
+..a...................a............
+..a...................a............
+..a...................a............
+..aaaaaaaaaaaaaaaaaaaaa............
+...................................
+Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-### Filtering analyses
+### 7 — corner touch
 
-You can ask for only some of the three analyses with `--analysis`:
+The rectangles meet at a single point. Touching a single corner is **not**
+adjacency (adjacency requires a shared segment with non-zero length), but the
+boundaries *do* still meet at that one point — so it's reported as a single
+intersection point.
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency --draw false
-Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
-Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
-
-Intersection: 2 points (5, 10), (10, 5)
-Adjacency: none — the rectangles do not share a side.
+java -jar target/rectangles.jar demo --name corner-touch
 ```
 
-### Listing demo scenarios
-
-```bash
-$ java -jar target/rectangles.jar demo --list
-Available scenarios:
-  disjoint              Rectangles are completely separate. No intersection no containment, and no adjacency.
-  intersection          Partial overlap with two boundary crossing points. No containment
-  containment           Strict containment - B sits entirely inside A with no boundary contact.
-  sub-line-adjacency    B's left side is wholly contained inside A's right side.
-  proper-adjacency      Two rectangles share a full side (A.right == B.left).
-  partial-adjacency     A's right side and B's left side share only a part of a side.
-  corner-touch          Rectangles meet at a single corner — contact but no shared side.
-```
-
-### Running a single demo scenario (with picture)
-
-`demo` also draws by default. A corner-touch scenario shows a single `#` cell
-where the two rectangles meet:
-
-```bash
-$ java -jar target/rectangles.jar demo --name corner-touch
+```text
 Scenario: corner-touch
 Rectangles meet at a single corner — contact but no shared side.
 
@@ -329,38 +358,264 @@ Adjacency: none — the rectangles do not share a side.
 Legend: a = rect A boundary, b = rect B boundary, # = both, . = empty
 ```
 
-Pass `--draw false` to skip the pictures when running all scenarios at once.
+---
+
+## Analyzing your own rectangles
+
+Use `analyze` to run the same checks on any pair of rectangles. Pass each
+rectangle as two opposite corners (any two opposite corners will do — the
+tool normalises them):
+
+```bash
+java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
+```
+
+```text
+Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
+Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
+
+Intersection: 2 points (5, 10), (10, 5)
+Containment: none — neither rectangle wholly contains the other.
+Adjacency: none — the rectangles do not share a side.
+...
+```
+
+(The `...` is the same ASCII picture as the *intersection* scenario — pass
+`--draw false` to suppress it.)
+
+### Filter which analyses you want
+
+Use `--analysis` (`-a`) to run only some of the three checks:
+
+```bash
+java -jar target/rectangles.jar analyze -r 0,0,10,10,5,5,15,15 -a intersection,adjacency --draw false
+```
+
+```text
+Rectangle A: (0, 0) - (10, 10)  [width=10, height=10]
+Rectangle B: (5, 5) - (15, 15)  [width=10, height=10]
+
+Intersection: 2 points (5, 10), (10, 5)
+Adjacency: none — the rectangles do not share a side.
+```
 
 ### Error handling
 
-Bad input is reported on stdout instead of throwing a stack trace:
+Bad input produces a friendly error on stdout, not a stack trace:
 
 ```bash
-$ java -jar target/rectangles.jar analyze -r 0,0,0,5,1,1,2,2
-Error: Invalid Rectangle: width must be greater than 0 (got left=0, right=0 from Point[x=0, y=0] and Point[x=0, y=5]).
+java -jar target/rectangles.jar analyze -r 0,0,0,5,1,1,2,2
+```
 
-$ java -jar target/rectangles.jar analyze -r 0,0,1,1,2,2,3,3 --analysis bogus
+```text
+Error: Invalid Rectangle: width must be greater than 0 (got left=0, right=0 from Point[x=0, y=0] and Point[x=0, y=5]).
+```
+
+```bash
+java -jar target/rectangles.jar analyze -r 0,0,1,1,2,2,3,3 --analysis bogus
+```
+
+```text
 Error: Unknown analysis type 'bogus'. Valid values: [INTERSECTION, CONTAINMENT, ADJACENCY]
+```
+
+---
+
+## CLI reference
+
+### `analyze` — analyse a pair of rectangles
+
+```bash
+java -jar target/rectangles.jar analyze \
+    --rectangles x1,y1,x2,y2,x3,y3,x4,y4 \
+    [--analysis intersection,containment,adjacency] \
+    [--draw true|false]
+```
+
+| Option         | Short | Required | Description                                                                                              |
+|----------------|:-----:|:--------:|----------------------------------------------------------------------------------------------------------|
+| `--rectangles` | `-r`  |   yes    | Eight comma-separated integers giving two opposite corners of each rectangle: `x1,y1,x2,y2,x3,y3,x4,y4`. |
+| `--analysis`   | `-a`  |    no    | Comma-separated subset of `intersection`, `containment`, `adjacency`. Defaults to all three.             |
+| `--draw`       | `-d`  |    no    | Append an ASCII picture of the two rectangles. Defaults to `true`; pass `--draw false` to suppress.      |
+
+The two corners may be given in any order — the rectangle is normalised so
+`(x1,y1)` and `(x2,y2)` describe opposite corners. They must not share an x
+or y coordinate, otherwise the rectangle is degenerate and the command
+returns an error.
+
+### `demo` — run pre-built scenarios
+
+```bash
+java -jar target/rectangles.jar demo [--name <scenario>] [--list] [--draw true|false]
+```
+
+| Option   | Short | Description                                                                                                     |
+|----------|:-----:|-----------------------------------------------------------------------------------------------------------------|
+| `--name` | `-n`  | Run only the named scenario (see `--list` for names).                                                           |
+| `--list` | `-l`  | List all scenario names and descriptions, then exit.                                                            |
+| `--draw` | `-d`  | Append an ASCII picture of each scenario's two rectangles. Defaults to `true`; pass `--draw false` to suppress. |
+
+With no options, `demo` runs every scenario in turn. Available scenarios:
+`disjoint`, `intersection`, `containment`, `sub-line-adjacency`,
+`proper-adjacency`, `partial-adjacency`, `corner-touch`.
+
+### `help` — list commands and show per-command help
+
+With no arguments, `help` lists every available command grouped by category,
+with the **Rectangle Analysis Commands** group first.
+
+In one-shot mode (the default) only the rectangle-analysis commands are
+listed. The Spring Shell built-ins (`clear`, `quit`, `script`, `version`)
+don't apply when you're just running a single command and exiting, so they
+are hidden to keep the output focused:
+
+```bash
+java -jar target/rectangles.jar help
+```
+
+```text
+AVAILABLE COMMANDS
+
+Rectangle Analysis Commands
+	analyze: Analyze two rectangles for intersection, containment, and adjacency.
+	demo: Run a built-in demo scenario (or all of them).
+```
+
+In [interactive mode](#interactive-mode) the built-ins are relevant, so
+they're listed in their own group below:
+
+```text
+AVAILABLE COMMANDS
+
+Rectangle Analysis Commands
+	analyze: Analyze two rectangles for intersection, containment, and adjacency.
+	demo: Run a built-in demo scenario (or all of them).
+Built-In Commands
+	clear: Clear the terminal screen
+	help: Display help about available commands
+	quit, exit: Exit the shell
+	script: Execute commands from a script file
+	version: Show version info
+```
+
+With a command name as an argument, `help` prints the command's full
+NAME / SYNOPSIS / OPTIONS block in either mode:
+
+```bash
+java -jar target/rectangles.jar help analyze
+java -jar target/rectangles.jar help demo
+```
+
+---
+
+## Build & run
+
+### Requirements
+
+- **Java 17 or newer** (verified on Java 17 and Java 25).
+- The bundled **Maven wrapper** (`./mvnw`) — no separate Maven install
+  required.
+- An internet connection on **first build only**, so Maven can download the
+  dependencies listed below into your local `~/.m2/repository`. No network
+  access is needed to run the jar afterwards.
+
+### Dependencies
+
+- **Parent POM:** `spring-boot-starter-parent`
+- **Runtime:** `spring-shell-starter`
+- **Test:** `spring-boot-starter-test`, `spring-shell-starter-test`
+
+### Build
+
+```bash
+./mvnw package              # build + run tests
+./mvnw -DskipTests package  # build, skip tests
+```
+
+Either command produces a single self-contained jar at:
+
+```
+target/rectangles.jar
+```
+
+The filename has **no version suffix** — it's just `rectangles.jar`, set via
+`<finalName>` in the POM.
+
+### Run
+
+The application supports two modes: **one-shot** (the default, used in every
+example in this README) and **interactive** (a Spring Shell REPL).
+
+#### One-shot mode
+
+Pass a command and its options as program arguments and the jar prints the
+result and exits.
+
+```bash
+java -jar target/rectangles.jar <command> [options]
+```
+
+Two equivalent invocation styles are supported:
+
+**1. `java -jar` (cross-platform — Mac, Linux, Windows):**
+
+```bash
+java -jar target/rectangles.jar analyze --rectangles 0,0,10,10,5,5,15,15
+```
+
+**2. Via Maven, without building a jar first:**
+
+```bash
+./mvnw -q spring-boot:run -Dspring-boot.run.arguments="analyze --rectangles 0,0,10,10,5,5,15,15"
+```
+
+Launching the jar with **no arguments** runs `demo` by default, which is the
+fastest way to see the tool in action after a fresh build.
+
+#### Interactive mode
+
+To drop into the Spring Shell REPL instead, opt in with
+`--spring.shell.interactive.enabled=true`:
+
+```bash
+java -jar target/rectangles.jar --spring.shell.interactive.enabled=true
+```
+
+You get a `shell:>` prompt where you can type the same commands as one-shot
+mode, but **without** the `java -jar target/rectangles.jar` prefix:
+
+```text
+shell:>help
+shell:>analyze --rectangles 0,0,10,10,5,5,15,15
+shell:>demo --name proper-adjacency
+shell:>exit
+```
+
+Interactive mode also gives you tab-completion, arrow-key history, and the
+`quit` / `exit` commands. The same flag works via Maven too:
+
+```bash
+./mvnw -q spring-boot:run -Dspring-boot.run.arguments="--spring.shell.interactive.enabled=true"
 ```
 
 ---
 
 ## Definitions
 
-A few notes on the semantics implemented here:
+The formal semantics implemented here:
 
-- **Intersection points** are the points where rectangle *boundaries* cross.
-  For two rectangles that overlap, there are typically two such points (where
-  one rectangle's edge enters and exits the other). For two rectangles that
-  share a stretch of edge, the reported intersection points are the two
-  endpoints of the shared stretch (those are the points at which boundary
-  segments actually cross). A pure containment with no boundary contact
-  produces an empty intersection.
+- **Intersection points** are the points where rectangle *boundaries* meet.
+  - Overlapping rectangles produce two boundary crossings.
+  - Adjacent rectangles produce two points — the endpoints of the shared
+    segment.
+  - Two rectangles meeting at a single corner produce one intersection point.
+  - Strict containment with no boundary contact produces an empty
+    intersection.
 - **Containment** considers a rectangle to contain another if every point of
   the inner rectangle lies inside or on the boundary of the outer one. Two
   identical rectangles are reported as `equal`, not as containing each other.
-- **Adjacency** requires a shared edge segment of non-zero length. Two
-  rectangles meeting at a single corner are *not* adjacent.
+- **Adjacency** requires a shared edge segment of *non-zero* length. Two
+  rectangles meeting at a single corner are **not** adjacent.
   - **Proper** — the shared segment equals a full side of both rectangles.
   - **Sub-line** — the shared segment equals a full side of exactly one of
     the rectangles (i.e. one side is wholly contained within the other).
@@ -368,27 +623,26 @@ A few notes on the semantics implemented here:
 
 ---
 
-## Project layout
+## Tests
 
+The project ships with a JUnit Jupiter / Mockito / AssertJ test suite (all
+provided transitively by `spring-boot-starter-test`). Run it with:
+
+```bash
+./mvnw test
 ```
-src/main/java/org/konner/rectangles
-├── RectanglesApplication.java          Spring Boot entry point
-├── shell/RectangleCommands.java        Spring Shell command definitions
-├── service/
-│   ├── RectangleAnalysisService.java   Service interface
-│   └── RectangleAnalysisServiceImpl.java
-├── formatter/
-│   ├── RectangleAnalysisFormatter.java        Output interface
-│   ├── RectangleAnalysisFormatterImpl.java    Plain-text implementation
-│   ├── RectangleDrawer.java                   ASCII drawing interface
-│   └── RectangleDrawerImpl.java               Perimeter-only ASCII renderer
-├── demo/DemoScenarios.java             Built-in demo scenarios for `demo`
-├── model/
-│   ├── Rectangle.java
-│   ├── Point.java
-│   ├── Containment.java
-│   ├── Adjacency.java
-│   ├── AnalysisType.java
-│   └── RectangleAnalysisResult.java
-└── exception/InvalidRectangleException.java
+
+Run a single class, nested class, or method using Surefire's `-Dtest=` flag:
+
+```bash
+./mvnw test -Dtest=RectangleAnalysisServiceImplTest
+./mvnw test -Dtest='RectangleAnalysisServiceImplTest$Intersection'
+./mvnw test -Dtest='RectangleAnalysisServiceImplTest#analyzeWithSubsetSkipsOtherSections'
 ```
+
+Surefire reports are written to `target/surefire-reports/`.
+
+> On JDK 24+, Mockito's inline mock-maker needs the `byte-buddy` agent to be
+> loaded up-front; the POM wires this in automatically so `./mvnw test` works
+> out of the box on modern JDKs.
+---

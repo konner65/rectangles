@@ -19,6 +19,8 @@ import java.util.Set;
 @Component
 public class RectangleCommands {
 
+    private static final String GROUP = "Rectangle Analysis Commands";
+
     @Autowired
     private RectangleAnalysisService analyzer;
 
@@ -33,6 +35,7 @@ public class RectangleCommands {
 
     @Command(
             name = "analyze",
+            group = GROUP,
             description = "Analyze two rectangles for intersection, containment, and adjacency.",
             help = """
                    Analyzes two axis-aligned rectangles and reports:
@@ -112,6 +115,7 @@ public class RectangleCommands {
 
     @Command(
             name = "demo",
+            group = GROUP,
             description = "Run a built-in demo scenario (or all of them).",
             help = """
                    Runs one or all of the pre-built demonstration scenarios. Each
