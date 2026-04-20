@@ -15,7 +15,7 @@ public class DemoScenarios {
     public DemoScenarios() {
         register(new Scenario(
                 "disjoint",
-                "Rectangles are completely separate. No intersection no containment, and no adjacency.",
+                "Rectangles are completely separate. No intersection, no containment, and no adjacency.",
                 Rectangle.of(0, 0, 5, 5),
                 Rectangle.of(10, 10, 15, 15)));
 
